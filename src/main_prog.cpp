@@ -60,25 +60,20 @@ se::Status init_board(se::SimpleTask &task, void *pvParameters) {
 se::Status task_blink_func(se::SimpleTask &task, void *pvParameters) {
   (void)pvParameters;
 
-  if(!task.task_get_status().ok()) {
-    gpio_status_led.toggle();
-    return task.task_get_status();
-  }
-
-  gpio_user_led_1.toggle();
-  return Status::OK();
+  return se::Status::OK();
 }
 
 
 void main_prog() {
   // START ALL INTERRUPTS
-  HAL_NVIC_SetPriority(TIM6_IRQn, 1, 0);
-  HAL_NVIC_EnableIRQ(TIM6_IRQn);
+  // HAL_NVIC_SetPriority(TIM6_IRQn, 1, 0);
+  // HAL_NVIC_EnableIRQ(TIM6_IRQn);
+
   HAL_TIM_Base_Start_IT(&htim6);
 
   // INIT LOGGER
   std::string version = std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + "." + std::to_string(VERSION_BUILD);
-  se::Logger::get_instance().init(se::LOG_LEVEL::LOG_LEVEL_DEBUG, true, TEMPLATE_Transmit, false, version);
+  se::Logger::get_instance().init(se::LOG_LEVEL::LOG_LEVEL_DEBUG, true, nullptr, true, version);
 
 
   // START MAIN TASK
