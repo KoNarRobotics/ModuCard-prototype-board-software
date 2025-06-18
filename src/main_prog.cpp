@@ -22,6 +22,8 @@ std::shared_ptr<se::CAN> fdcan = nullptr;
 // se::GpioPin gpio_i2c1_sda(*GPIOB, GPIO_PIN_9);
 // se::GpioPin gpio_boot_enable(*BOOT_EN_GPIO_Port, BOOT_EN_Pin);
 
+se::GpioPin gpio_pb3(*GPIOB, GPIO_PIN_3);
+
 se::SimpleTask task_blink;
 
 
@@ -58,6 +60,7 @@ se::Status init_board(se::SimpleTask &task, void *pvParameters) {
 }
 
 se::Status task_blink_func(se::SimpleTask &task, void *pvParameters) {
+  gpio_pb3.toggle();
   (void)pvParameters;
 
   return se::Status::OK();
