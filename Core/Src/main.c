@@ -22,7 +22,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "main_prog.hpp"
 
 /* USER CODE END Includes */
 
@@ -121,7 +120,6 @@ int main(void)
 
   /* Init scheduler */
   osKernelInitialize();
-main_prog();
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
