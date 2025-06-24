@@ -57,7 +57,7 @@ void can_callback_geiger_read(se::CanBase &can, se::CanDataFrame &msg, void *arg
   (void)args;
   can_geiger_read_t geiger_read;
   geiger_read.micro_siwert = micro_siwert;
-  geiger_read.cpm          = CPM;
+  geiger_read.cpm          = (float)CPM;
 
   se::CanDataFrame response_msg;
   response_msg.frame_id       = CAN_GEIGER_READ_FRAME_ID;
