@@ -8,5 +8,6 @@
   ],
   "files.associations": {
     "expected": "cpp"
-  }
+  },
+  "editor.formatOnSave": true
 }

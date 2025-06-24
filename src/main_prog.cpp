@@ -11,12 +11,14 @@
 #include "version.hpp"
 #include "stmepic.hpp"
 
+#include <queue>
+
 namespace se = stmepic;
 
 std::shared_ptr<se::I2C> i2c1;
 
-std::shared_ptr<se::UART> uart4  = nullptr;
-std::shared_ptr<se::CAN> fdcan = nullptr;
+std::shared_ptr<se::UART> uart4 = nullptr;
+std::shared_ptr<se::CAN> fdcan  = nullptr;
 
 // se::GpioPin gpio_i2c1_scl(*GPIOB, GPIO_PIN_8);
 // se::GpioPin gpio_i2c1_sda(*GPIOB, GPIO_PIN_9);
@@ -26,11 +28,12 @@ std::shared_ptr<se::CAN> fdcan = nullptr;
 // PB0 - button
 
 se::GpioPin gpio_geiger(*GPIOB, GPIO_PIN_0);
+se::GpioPin gpio_user_led(*GPIOB, GPIO_PIN_2);
 
-se::GpioPin gpio_ch4(*GPIOA, GPIO_PIN_3); // CH 4
-se::GpioPin gpio_ch2(*GPIOC, GPIO_PIN_13); // CH 2
-se::GpioPin gpio_ch1(*GPIOC, GPIO_PIN_4); // CH 1
-se::GpioPin gpio_ch3(*GPIOA, GPIO_PIN_2); // CH 3
+se::GpioPin gpio_ch4(*GPIOA, GPIO_PIN_3);        // CH 4
+se::GpioPin gpio_ch2(*GPIOC, GPIO_PIN_13);       // CH 2
+se::GpioPin gpio_ch1(*GPIOC, GPIO_PIN_4);        // CH 1
+se::GpioPin gpio_ch3(*GPIOA, GPIO_PIN_2);        // CH 3
 se::GpioPin gpio_health_led(*GPIOA, GPIO_PIN_8); // Health LED
 // void can_callback_change_relay(stmepic::CanBase &can, stmepic::CanDataFrame &recived_msg, void *args) {
 //   (void)can;
@@ -48,7 +51,7 @@ se::SimpleTask task_geiger;
 
 uint32_t CPS;
 
-bool relay_state[4] = {false, false, false, false}; // Relay states for CH1, CH2, CH3, CH4
+bool relay_state[4] = { false, false, false, false }; // Relay states for CH1, CH2, CH3, CH4
 
 /**
  * @brief  Period elapsed callback in non blocking mode
@@ -68,7 +71,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     HAL_IncTick();
   }
 }
-
 }
 
 // USUN FUNKCJE WYZEJ Z main.cpp
@@ -82,7 +84,7 @@ se::Status init_board(se::SimpleTask &task, void *pvParameters) {
   // some initialization code here
 
   vTaskDelay(2000); // Wait for 1 second to ensure all GPIOs and devices booted correctly after power on
- 
+
   return se::Status::OK();
 }
 
@@ -99,9 +101,9 @@ se::Status task_read_geiger(se::SimpleTask &task, void *pvParameters) {
   (void)task;
   (void)pvParameters;
 
-  CPS = TIM1->CNT;
-  TIM1->CNT=0;
-  
+  CPS       = TIM1->CNT;
+  TIM1->CNT = 0;
+
   return se::Status::OK();
 }
 
