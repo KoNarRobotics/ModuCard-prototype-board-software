@@ -32,11 +32,21 @@ se::GpioPin gpio_ch2(*GPIOC, GPIO_PIN_13); // CH 2
 se::GpioPin gpio_ch1(*GPIOC, GPIO_PIN_4); // CH 1
 se::GpioPin gpio_ch3(*GPIOA, GPIO_PIN_2); // CH 3
 se::GpioPin gpio_health_led(*GPIOA, GPIO_PIN_8); // Health LED
-
+// void can_callback_change_relay(stmepic::CanBase &can, stmepic::CanDataFrame &recived_msg, void *args) {
+//   (void)can;
+//   (void)recived_msg;
+//   (void)args;
+//   can_gpio_send_state_t can_gpio_state;
+//   can_gpio_send_state_unpack(&can_gpio_state, recived_msg.data, recived_msg.data_size);
+//   gpio_ch1.write(can_gpio_state.ch1);
+//   gpio_ch2.write(can_gpio_state.ch2);
+//   gpio_ch3.write(can_gpio_state.ch3);
+//   gpio_ch4.write(can_gpio_state.ch4);
+// }
 se::SimpleTask task_blink;
 se::SimpleTask task_geiger;
 
-uint32_t CPM;
+uint32_t CPS;
 
 bool relay_state[4] = {false, false, false, false}; // Relay states for CH1, CH2, CH3, CH4
 
@@ -63,6 +73,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 // USUN FUNKCJE WYZEJ Z main.cpp
 
+float CPS_to_usiev() {
+  return CPS * 60 * 0.00332;
+}
+
 se::Status init_board(se::SimpleTask &task, void *pvParameters) {
   // gpio_user_led_1.write(0);
   // some initialization code here
@@ -72,20 +86,20 @@ se::Status init_board(se::SimpleTask &task, void *pvParameters) {
   return se::Status::OK();
 }
 
-se::Status task_blink_func(se::SimpleTask &task, void *pvParameters) {
-  (void)task;
-  (void)pvParameters;
+// se::Status task_blink_func(se::SimpleTask &task, void *pvParameters) {
+//   (void)task;
+//   (void)pvParameters;
 
-  gpio_health_led.toggle();
+//   gpio_health_led.toggle();
 
-  return se::Status::OK();
-}
+//   return se::Status::OK();
+// }
 
 se::Status task_read_geiger(se::SimpleTask &task, void *pvParameters) {
   (void)task;
   (void)pvParameters;
 
-  CPM = TIM1->CNT;
+  CPS = TIM1->CNT;
   TIM1->CNT=0;
   
   return se::Status::OK();
@@ -133,9 +147,9 @@ void main_prog() {
 
   // START MAIN TASK
 
-  task_blink.task_init(task_blink_func, nullptr, 300, init_board, 400, 2, "MainTask", false);
-  task_blink.task_run();
+  // task_blink.task_init(task_blink_func, nullptr, 300, init_board, 400, 2, "MainTask", false);
+  // task_blink.task_run();
 
-  task_geiger.task_init(task_blink_func, nullptr, 1000, init_board, 1000, 2, "Geiger", false);
+  task_geiger.task_init(task_read_geiger, nullptr, 1000, init_board, 1000, 2, "Geiger", false);
   task_geiger.task_run();
 }
