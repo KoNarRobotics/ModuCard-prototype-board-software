@@ -35,21 +35,12 @@ se::GpioPin gpio_ch2(*GPIOC, GPIO_PIN_13);       // CH 2
 se::GpioPin gpio_ch1(*GPIOC, GPIO_PIN_4);        // CH 1
 se::GpioPin gpio_ch3(*GPIOA, GPIO_PIN_2);        // CH 3
 se::GpioPin gpio_health_led(*GPIOA, GPIO_PIN_8); // Health LED
-// void can_callback_change_relay(stmepic::CanBase &can, stmepic::CanDataFrame &recived_msg, void *args) {
-//   (void)can;
-//   (void)recived_msg;
-//   (void)args;
-//   can_gpio_send_state_t can_gpio_state;
-//   can_gpio_send_state_unpack(&can_gpio_state, recived_msg.data, recived_msg.data_size);
-//   gpio_ch1.write(can_gpio_state.ch1);
-//   gpio_ch2.write(can_gpio_state.ch2);
-//   gpio_ch3.write(can_gpio_state.ch3);
-//   gpio_ch4.write(can_gpio_state.ch4);
-// }
+
 se::SimpleTask task_blink;
 se::SimpleTask task_geiger;
 
-uint32_t CPS;
+std::queue<uint32_t> CPS_queue;
+uint32_t CPM;
 
 bool relay_state[4] = { false, false, false, false }; // Relay states for CH1, CH2, CH3, CH4
 
@@ -75,7 +66,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 // USUN FUNKCJE WYZEJ Z main.cpp
 
-float CPS_to_usiev() {
+float CPS_to_usiev(uint32_t CPS) {
   return CPS * 60 * 0.00332;
 }
 
@@ -83,26 +74,25 @@ se::Status init_board(se::SimpleTask &task, void *pvParameters) {
   // gpio_user_led_1.write(0);
   // some initialization code here
 
-  vTaskDelay(2000); // Wait for 1 second to ensure all GPIOs and devices booted correctly after power on
+  // vTaskDelay(2000); // Wait for 1 second to ensure all GPIOs and devices booted correctly after power on
 
   return se::Status::OK();
 }
-
-// se::Status task_blink_func(se::SimpleTask &task, void *pvParameters) {
-//   (void)task;
-//   (void)pvParameters;
-
-//   gpio_health_led.toggle();
-
-//   return se::Status::OK();
-// }
 
 se::Status task_read_geiger(se::SimpleTask &task, void *pvParameters) {
   (void)task;
   (void)pvParameters;
 
-  CPS       = TIM1->CNT;
+  uint32_t recent_CPS = TIM1->CNT;
+
+  if(CPS_queue.size() > 59) {
+    CPS_queue.pop();
+  }
+
+  CPS_queue.push(recent_CPS);
   TIM1->CNT = 0;
+
+  gpio_user_led.toggle();
 
   return se::Status::OK();
 }
