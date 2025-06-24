@@ -63,6 +63,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     src/main_prog.cpp
+    src/can_callbacks.cpp
 )
 
 # Add include paths
