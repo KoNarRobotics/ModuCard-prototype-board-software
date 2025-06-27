@@ -74,7 +74,7 @@ void can_callback_geiger_status(se::CanBase &can, se::CanDataFrame &msg, void *a
   (void)can;
   (void)args;
   can_geiger_status_t geiger_status;
-  geiger_status.geiger_status = CAN_GEIGER_STATUS_GEIGER_STATUS_OK_CHOICE;
+  geiger_status.geiger_status = current_geiger_status;
 
   se::CanDataFrame response_msg;
   response_msg.frame_id       = CAN_GEIGER_STATUS_FRAME_ID;
