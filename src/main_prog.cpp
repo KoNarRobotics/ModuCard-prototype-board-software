@@ -39,8 +39,8 @@ se::GpioPin gpio_health_led(*GPIOA, GPIO_PIN_8); // Health LED
 se::SimpleTask task_blink;
 se::SimpleTask task_geiger;
 
-std::queue<uint32_t> CPS_queue;
-uint32_t CPM;
+std::queue<uint16_t> CPS_queue;
+uint16_t CPM;
 
 bool relay_state[4] = { false, false, false, false }; // Relay states for CH1, CH2, CH3, CH4
 
@@ -93,6 +93,23 @@ se::Status task_read_geiger(se::SimpleTask &task, void *pvParameters) {
   TIM1->CNT = 0;
 
   gpio_user_led.toggle();
+
+  return se::Status::OK();
+}
+
+se::Status task_calc_cpm(se::SimpleTask &task, void *pvParameters) {
+  (void)task;
+  (void)pvParameters;
+
+  uint32_t CPM_temp;
+  std::queue<uint32_t> temp = CPS_queue;
+
+  while(!temp.empty()) {
+    CPM_temp += temp.front();
+    temp.pop();
+  }
+
+  CPM = CPM_temp;
 
   return se::Status::OK();
 }
