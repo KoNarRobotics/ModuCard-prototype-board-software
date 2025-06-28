@@ -15,6 +15,7 @@ extern se::GpioPin gpio_health_led;
 extern float micro_siwert;
 extern uint16_t CPM;
 extern uint8_t current_geiger_status;
+extern bool relay_state[4];
 
 void config_usb_device();
 void main_prog();

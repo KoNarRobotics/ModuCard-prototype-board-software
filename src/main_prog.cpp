@@ -17,10 +17,8 @@ namespace se = stmepic;
 std::shared_ptr<se::I2C> i2c1;
 
 std::shared_ptr<se::UART> uart4 = nullptr;
-std::shared_ptr<se::CAN> fdcan  = nullptr;
+std::shared_ptr<se::CAN> can    = nullptr;
 
-// se::GpioPin gpio_i2c1_scl(*GPIOB, GPIO_PIN_8);
-// se::GpioPin gpio_i2c1_sda(*GPIOB, GPIO_PIN_9);
 // se::GpioPin gpio_boot_enable(*BOOT_EN_GPIO_Port, BOOT_EN_Pin);
 
 // PA10 - input radio, actual usage
@@ -36,6 +34,7 @@ se::GpioPin gpio_ch3(*GPIOA, GPIO_PIN_2);        // CH 3
 se::GpioPin gpio_health_led(*GPIOA, GPIO_PIN_8); // Health LED
 
 se::SimpleTask task_blink;
+se::SimpleTask task_relays;
 se::SimpleTask task_geiger;
 
 std::queue<uint16_t> CPS_queue;
@@ -43,7 +42,7 @@ uint16_t CPM;
 float micro_siwert;
 uint8_t current_geiger_status = CAN_GEIGER_STATUS_GEIGER_STATUS_FAULT_CHOICE;
 
-bool relay_state[4] = { false, false, false, false }; // Relay states for CH1, CH2, CH3, CH4
+bool relay_state[4] = { true, true, true, true }; // Relay states for CH1, CH2, CH3, CH4
 
 /**
  * @brief  Period elapsed callback in non blocking mode
@@ -72,11 +71,8 @@ float CPS_to_usiev(uint32_t CPS) {
 }
 
 se::Status init_board(se::SimpleTask &task, void *pvParameters) {
-  // gpio_user_led_1.write(0);
-  // some initialization code here
-
-  // vTaskDelay(2000); // Wait for 1 second to ensure all GPIOs and devices booted correctly after power on
-
+  (void)task;
+  (void)pvParameters;
   return se::Status::OK();
 }
 
@@ -106,9 +102,26 @@ se::Status task_read_geiger(se::SimpleTask &task, void *pvParameters) {
     }
     CPM = CPM_temp;
   }
+  return se::Status::OK();
+}
 
-  // TEST ONLY
+se::Status task_blink_led(se::SimpleTask &task, void *pvParameters) {
+  (void)task;
+  (void)pvParameters;
+
   gpio_user_led.toggle();
+  return se::Status::OK();
+}
+
+se::Status task_changed_relays(se::SimpleTask &task, void *pvParameters) {
+  (void)task;
+  (void)pvParameters;
+
+  // Toggle relays based on the relay_state array
+  gpio_ch1.write(relay_state[0]);
+  gpio_ch2.write(relay_state[1]);
+  gpio_ch3.write(relay_state[2]);
+  gpio_ch4.write(relay_state[3]);
 
   return se::Status::OK();
 }
@@ -136,7 +149,24 @@ void main_prog() {
   can_filter.FilterMaskIdLow      = 0;
   can_filter.SlaveStartFilterBank = 0;
 
-  STMEPIC_ASSING_TO_OR_HRESET(fdcan, se::CAN::Make(hcan2, can_filter, nullptr, nullptr));
+  STMEPIC_ASSING_TO_OR_HRESET(can, se::CAN::Make(hcan2, can_filter, nullptr, nullptr));
+
+
+  can->add_callback(CAN_GPIO_SET_FRAME_ID, can_callback_gpio_set, nullptr);
+  can->add_callback(CAN_GPIO_READ_FRAME_ID, can_callback_gpio_read, nullptr);
+  can->add_callback(CAN_GPIO_STATUS_FRAME_ID, can_callback_gpio_status, nullptr);
+
+
+  can->add_callback(CAN_GEIGER_READ_FRAME_ID, can_callback_geiger_read, nullptr);
+  can->add_callback(CAN_GEIGER_STATUS_FRAME_ID, can_callback_geiger_status, nullptr);
+
+  can->hardware_start();
+  task_blink.task_init(task_blink_led, nullptr, 100, nullptr, 1000, 2, "Blink", false);
+  task_blink.task_run();
+
+
+  task_relays.task_init(task_changed_relays, nullptr, 10, nullptr, 1000, 2, "Relays", false);
+  task_relays.task_run();
 
   task_geiger.task_init(task_read_geiger, nullptr, 1000, init_board, 1000, 2, "Geiger", false);
   task_geiger.task_run();

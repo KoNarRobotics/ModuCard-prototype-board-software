@@ -12,10 +12,10 @@ void can_callback_gpio_set(se::CanBase &can, se::CanDataFrame &msg, void *args) 
   (void)args;
   can_gpio_set_t gpio_set;
   can_gpio_set_unpack(&gpio_set, msg.data, msg.data_size);
-  gpio_ch1.write(gpio_set.ch1);
-  gpio_ch2.write(gpio_set.ch2);
-  gpio_ch3.write(gpio_set.ch3);
-  gpio_ch4.write(gpio_set.ch4);
+  relay_state[0] = gpio_set.ch1;
+  relay_state[1] = gpio_set.ch2;
+  relay_state[2] = gpio_set.ch3;
+  relay_state[3] = gpio_set.ch4;
 }
 
 void can_callback_gpio_status(se::CanBase &can, se::CanDataFrame &msg, void *args) {
@@ -44,10 +44,10 @@ void can_callback_gpio_read(se::CanBase &can, se::CanDataFrame &msg, void *args)
   response_msg.fdcan_frame    = false;
   response_msg.data_size      = CAN_GPIO_READ_LENGTH;
 
-  gpio_read.ch1 = gpio_ch1.read();
-  gpio_read.ch2 = gpio_ch2.read();
-  gpio_read.ch3 = gpio_ch3.read();
-  gpio_read.ch4 = gpio_ch4.read();
+  gpio_read.ch1 = relay_state[0];
+  gpio_read.ch2 = relay_state[1];
+  gpio_read.ch3 = relay_state[2];
+  gpio_read.ch4 = relay_state[3];
   can_gpio_read_unpack(&gpio_read, response_msg.data, response_msg.data_size);
   (void)can.write(response_msg);
 }
