@@ -42,7 +42,7 @@ uint16_t CPM;
 float micro_siwert;
 uint8_t current_geiger_status = CAN_GEIGER_STATUS_GEIGER_STATUS_FAULT_CHOICE;
 
-bool relay_state[4] = { true, true, true, true }; // Relay states for CH1, CH2, CH3, CH4
+bool relay_state[4] = { false, false, false, false }; // Relay states for CH1, CH2, CH3, CH4
 
 /**
  * @brief  Period elapsed callback in non blocking mode
