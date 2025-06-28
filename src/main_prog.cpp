@@ -143,7 +143,7 @@ void main_prog() {
   can_filter.FilterActivation     = CAN_FILTER_ENABLE;
   can_filter.FilterMode           = CAN_FILTERMODE_IDMASK;
   can_filter.FilterScale          = CAN_FILTERSCALE_16BIT;
-  can_filter.FilterIdHigh         = 0x1110;
+  can_filter.FilterIdHigh         = 0x1210;
   can_filter.FilterIdLow          = 0;
   can_filter.FilterMaskIdHigh     = 0xfff0;
   can_filter.FilterMaskIdLow      = 0;
@@ -152,22 +152,22 @@ void main_prog() {
   STMEPIC_ASSING_TO_OR_HRESET(can, se::CAN::Make(hcan2, can_filter, nullptr, nullptr));
 
 
-  can->add_callback(CAN_GPIO_SET_FRAME_ID, can_callback_gpio_set, nullptr);
-  can->add_callback(CAN_GPIO_READ_FRAME_ID, can_callback_gpio_read, nullptr);
-  can->add_callback(CAN_GPIO_STATUS_FRAME_ID, can_callback_gpio_status, nullptr);
+  // can->add_callback(CAN_GPIO_SET_FRAME_ID, can_callback_gpio_set, nullptr);
+  // can->add_callback(CAN_GPIO_READ_FRAME_ID, can_callback_gpio_read, nullptr);
+  // can->add_callback(CAN_GPIO_STATUS_FRAME_ID, can_callback_gpio_status, nullptr);
 
 
-  // can->add_callback(CAN_GEIGER_READ_FRAME_ID, can_callback_geiger_read, nullptr);
-  // can->add_callback(CAN_GEIGER_STATUS_FRAME_ID, can_callback_geiger_status, nullptr);
+  can->add_callback(CAN_GEIGER_READ_FRAME_ID, can_callback_geiger_read, nullptr);
+  can->add_callback(CAN_GEIGER_STATUS_FRAME_ID, can_callback_geiger_status, nullptr);
 
   can->hardware_start();
   task_blink.task_init(task_blink_led, nullptr, 100, nullptr, 1000, 2, "Blink", false);
   task_blink.task_run();
 
 
-  task_relays.task_init(task_changed_relays, nullptr, 10, nullptr, 1000, 2, "Relays", false);
-  task_relays.task_run();
+  // task_relays.task_init(task_changed_relays, nullptr, 10, nullptr, 1000, 2, "Relays", false);
+  // task_relays.task_run();
 
-  // task_geiger.task_init(task_read_geiger, nullptr, 1000, init_board, 1000, 2, "Geiger", false);
-  // task_geiger.task_run();
+  task_geiger.task_init(task_read_geiger, nullptr, 1000, init_board, 1000, 2, "Geiger", false);
+  task_geiger.task_run();
 }
